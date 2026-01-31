@@ -80,6 +80,16 @@ RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /clawdbot/dist/entry.js "$@"'
   && chmod +x /usr/local/bin/clawdbot
 
 COPY src ./src
+COPY TOOLS.md /app/TOOLS.md
+
+# Copy TOOLS.md to workspace on startup (entrypoint script)
+RUN printf '%s\n' '#!/usr/bin/env bash' \
+  'WORKSPACE="${CLAWDBOT_WORKSPACE_DIR:-$HOME/.clawdbot/workspace}"' \
+  'mkdir -p "$WORKSPACE"' \
+  'if [ ! -f "$WORKSPACE/TOOLS.md" ]; then cp /app/TOOLS.md "$WORKSPACE/TOOLS.md"; fi' \
+  'exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 # The wrapper listens on this port.
 ENV CLAWDBOT_PUBLIC_PORT=8080
